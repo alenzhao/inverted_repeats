@@ -88,31 +88,6 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGAT
 
 # <codecell>
 
-def process_old(infile):
-    count = 0
-    results = []
-    with open(out_fname, 'w') as out_fh:
-        for rec in SeqIO.parse(infile, "fastq"):
-            count += 1
-            if isSequence(rec):
-                new_rec, palindrome, length = check(rec)
-                # don't chenge when length of palindrom is below minimum
-                if length < shortest_length_to_check:
-                    new_rec = rec
-                else:
-                    # change record ID
-                    new_rec.description = '_cleaned_off_' + palindrome
-                    #print new_rec
-                    # log palindrome data
-                    palindromes[palindrome] = palindromes.get(palindrome, 0) +1
-                lengths[length] = lengths.get(length, 0) +1
-                results.append(new_rec)
-                if count == max_rec_to_process:
-                    break
-    return results
-
-# <codecell>
-
 def process(rec):
     if isSequence(rec):
 		new_rec, palindrome, length = check(rec)
@@ -169,10 +144,6 @@ if __name__ == "__main__":
             if processed == max_rec_to_process:
                 break
     print "Processed %i records" % processed
-
-# <codecell>
-
-[out_fname, out_pname, out_lname]
 
 # <codecell>
 
