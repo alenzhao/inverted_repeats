@@ -109,38 +109,43 @@ def process(infile):
                 results.append(new_rec)
                 if count == max_rec_to_process:
                     break
-    yield results
+    print new_rec.format("fastq")
+    return results
 
 # <codecell>
 
 if __name__ == "__main__":
+    path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
+#    path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    infile = 'Subset_Lex.fastq'
+    #infile = 'Determ.Underterm.collapsed.fastq'
+    #infile = 'All_trimmed_forward.fastq'
+    infile = 'temp.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
 
-    infile = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/Subset_Lex.fastq'
-    infile = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/Determ.Underterm.collapsed.fastq'
-    infile = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/All_trimmed_forward.fastq'
-    #infile = '/projects/cees/in_progress/lex/temp.fastq'
-    #infile = '/Users/alexajo/Dropbox/current/iPython/ancient_dna_terminal_palindrome_test.fastq'
-
-    [out_fname, out_pname, out_lname] = get_outfnames(infile)
-
+    [out_fname, out_pname, out_lname] = get_outfnames(path + infile)
+    
     palindromes = {}
     lengths = {}
+    total_trimmed = 0
 
     max_rec_to_process = 10000
 
-    out_fh = open(out_fname, "w")
-    count = SeqIO.write(next(process(infile)), out_fh, "fastq")
+    out_fh = open(path + out_fname, "w")
+    count = SeqIO.write(process(path + infile), out_fh, "fastq")
     out_fh.close()
-    print "Converted %i sequences" % count
-    with open(out_pname, "w") as p_out_fh:
+    with open(path + out_pname, "w") as p_out_fh:
         p_out_fh.write("palindrome\tcount\n")
         for p in palindromes.keys():
             p_out_fh.write("%s\t%s\n" %(p, palindromes[p]))
 
-    with open(out_lname, "w") as l_out_fh:
+    with open(path + out_lname, "w") as l_out_fh:
         l_out_fh.write("palindrome_length\tcount\n")
         for l in sorted(lengths.iterkeys()):
             l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
+            total_trimmed += lengths[l]
+    print "Converted %i sequences with %i inverted_repeats" % (count, total_trimmed)
 
 # <codecell>
 
@@ -157,7 +162,7 @@ plt.plot(ks, vs)
 
 # <codecell>
 
-out_fname
+path + out_fname
 
 # <codecell>
 
