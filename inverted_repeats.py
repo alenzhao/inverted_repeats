@@ -96,7 +96,7 @@ def process(rec):
 			new_rec = rec
 		else:
 			# change record ID
-			new_rec.description = '_cleaned_off_' + inv_rep
+			new_rec.description = 'cleaned_off_' + inv_rep
     return new_rec, inv_rep, length
 
 # <codecell>
@@ -131,13 +131,14 @@ if __name__ == "__main__":
     total_trimmed = 0
     processed = 0
 
-    max_rec_to_process = 1000
+    max_rec_to_process = 10
     with open(path + out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(path+infile, "fastq"):
             processed += 1
             new_rec, inv_rep, inv_rep_length = process(rec)
             out_fh.write(new_rec.format("fastq"))
-            inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
+            if inv_rep_length > shortest_length_to_check:
+                inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
             lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
             if processed == max_rec_to_process:
                 break
