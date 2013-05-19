@@ -101,25 +101,25 @@ def process(rec):
 
 # <codecell>
 
-from matplotlib import pylab as plt
-ks = []
-vs = []
-for k, v in lengths.iteritems():
-    if k >0:
-        ks.append(k)
-        vs.append(v)
-
-plt.plot(ks, vs)
+#from matplotlib import pylab as plt
+#ks = []
+#vs = []
+#for k, v in lengths.iteritems():
+#    if k >0:
+#        ks.append(k)
+#        vs.append(v)
+#
+#plt.plot(ks, vs)
 #plt.xlim(1,max(lengths.keys()))
 
 # <codecell>
 
 if __name__ == "__main__":
     path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
-#    path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
-    infile = 'Subset_Lex.fastq'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    #infile = 'Subset_Lex.fastq'
     #infile = 'Determ.Underterm.collapsed.fastq'
-    #infile = 'All_trimmed_forward.fastq'
+    infile = 'All_trimmed_forward.fastq'
     #infile = 'temp.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
@@ -130,19 +130,25 @@ if __name__ == "__main__":
     lengths = {}
     total_trimmed = 0
     processed = 0
-
-    max_rec_to_process = 10
+    
+    max_rec_to_process = 1000
+    print "Processing sequences..."
+    
     with open(path + out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(path+infile, "fastq"):
             processed += 1
             new_rec, inv_rep, inv_rep_length = process(rec)
             out_fh.write(new_rec.format("fastq"))
+            out_fh.flush()
             if inv_rep_length > shortest_length_to_check:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
             lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
+            if inv_rep_length > shortest_length_to_check:
+                total_trimmed += 1
             if processed == max_rec_to_process:
                 break
-                
+        print "Writing summary files..."
+        
 	with open(path + out_rname, "w") as p_out_fh:
 		p_out_fh.write("inverted_repeat\tcount\n")
 		for p in inv_reps.keys():
@@ -152,13 +158,8 @@ if __name__ == "__main__":
 		l_out_fh.write("repeat_length\tcount\n")
 		for l in sorted(lengths.iterkeys()):
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
-			total_trimmed += lengths[l]            
-        
+            
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
-
-# <codecell>
-
-total_trimmed
 
 # <codecell>
 
