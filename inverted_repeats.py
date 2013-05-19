@@ -30,7 +30,7 @@ def check(seq):
     # expects a Bio.SeqRecord.SeqRecord
     assert type(seq) == SeqRecord, "Not a sequence record: " + str(seq)
     assert len(seq) > 0, "Sequence length is zero: " + str(seq)
-    palindrome_length = 0
+    inv_rep_length = 0
     # need to test whether seq is a reverse complement of itself
     pass
     # check if first x bases are a reverse complement of the last x bases
@@ -39,26 +39,26 @@ def check(seq):
         #print str(rec[-10:].reverse_complement().seq) == str(rec[0:10].seq)
         if str(subseq.reverse_complement().seq) == str(seq[-i:].seq):
             #print i, subseq.reverse_complement(), seq[-i:]
-            palindrome_length = len(subseq)
-        # check when no longer adding bases to palindrome
-        if palindrome_length > 0 and i > palindrome_length:
+            inv_rep_length = len(subseq)
+        # check when no longer adding bases to inv_rep
+        if inv_rep_length > 0 and i > inv_rep_length:
             break
         # check for maximum length to check reached
         if i == longest_length_to_check - 1:
             break
-        if palindrome_length > 0:
-            new_seq = seq[:-palindrome_length]
-            palindrome = str(seq[-palindrome_length:].seq)
+        if inv_rep_length > 0:
+            new_seq = seq[:-inv_rep_length]
+            inv_rep = str(seq[-inv_rep_length:].seq)
         else:
             new_seq = seq
-            palindrome = ''
-    return [new_seq, palindrome, palindrome_length]
+            inv_rep = ''
+    return [new_seq, inv_rep, inv_rep_length]
 
 # <codecell>
 
 def test(seq):
-    [new_seq, palindrome, palindrome_length] = check(SeqRecord(Seq(seq)))
-    return [str(new_seq.seq), palindrome, palindrome_length]
+    [new_seq, inv_rep, inv_rep_length] = check(SeqRecord(Seq(seq)))
+    return [str(new_seq.seq), inv_rep, inv_rep_length]
 
 # <codecell>
 
@@ -70,10 +70,10 @@ def get_outfnames(infile):
     [in_fname, in_ext] = os.path.splitext(in_fname)
     # fastq outfile
     out_fnames.append(in_fname + '.clean' + in_ext)
-    # palindrome sequences + counts
-    out_fnames.append(in_fname + '.palindromes.txt')
-    # palindrome lengths + counts
-    out_fnames.append(in_fname + '.palindrome_lengths.txt')
+    # inv_rep sequences + counts
+    out_fnames.append(in_fname + '.inv_reps.txt')
+    # inv_rep lengths + counts
+    out_fnames.append(in_fname + '.inv_rep_lengths.txt')
     return out_fnames
 
 # <codecell>
@@ -82,7 +82,7 @@ def get_outfnames(infile):
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
 # one base
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
-# no palindrome
+# no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 #test('')
 
@@ -90,18 +90,14 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGAT
 
 def process(rec):
     if isSequence(rec):
-		new_rec, palindrome, length = check(rec)
+		new_rec, inv_rep, length = check(rec)
 		# don't chenge when length of palindrom is below minimum
 		if length < shortest_length_to_check:
 			new_rec = rec
 		else:
 			# change record ID
-			new_rec.description = '_cleaned_off_' + palindrome
-			#print new_rec
-			# log palindrome data
-			palindromes[palindrome] = palindromes.get(palindrome, 0) +1
-		lengths[length] = lengths.get(length, 0) +1
-    return new_rec
+			new_rec.description = '_cleaned_off_' + inv_rep
+    return new_rec, inv_rep, length
 
 # <codecell>
 
@@ -125,12 +121,12 @@ if __name__ == "__main__":
     #infile = 'Determ.Underterm.collapsed.fastq'
     #infile = 'All_trimmed_forward.fastq'
     #infile = 'temp.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+    #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
+    #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
 
-    [out_fname, out_pname, out_lname] = get_outfnames(path + infile)
+    [out_fname, out_rname, out_lname] = get_outfnames(path + infile)
     
-    palindromes = {}
+    inv_reps = {}
     lengths = {}
     total_trimmed = 0
     processed = 0
@@ -139,11 +135,29 @@ if __name__ == "__main__":
     with open(path + out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(path+infile, "fastq"):
             processed += 1
-            new_rec = process(rec)
+            new_rec, inv_rep, inv_rep_length = process(rec)
             out_fh.write(new_rec.format("fastq"))
+            inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
+            lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
             if processed == max_rec_to_process:
                 break
-    print "Processed %i records" % processed
+                
+	with open(path + out_rname, "w") as p_out_fh:
+		p_out_fh.write("inverted_repeat\tcount\n")
+		for p in inv_reps.keys():
+			p_out_fh.write("%s\t%s\n" %(p, inv_reps[p]))
+                           
+	with open(path + out_lname, "w") as l_out_fh:
+		l_out_fh.write("repeat_length\tcount\n")
+		for l in sorted(lengths.iterkeys()):
+			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
+			total_trimmed += lengths[l]            
+        
+    print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
+
+# <codecell>
+
+total_trimmed
 
 # <codecell>
 
