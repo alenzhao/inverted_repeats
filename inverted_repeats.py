@@ -88,7 +88,7 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGAT
 
 # <codecell>
 
-def process(infile):
+def process_old(infile):
     count = 0
     results = []
     with open(out_fname, 'w') as out_fh:
@@ -109,43 +109,24 @@ def process(infile):
                 results.append(new_rec)
                 if count == max_rec_to_process:
                     break
-    print new_rec.format("fastq")
     return results
 
 # <codecell>
 
-if __name__ == "__main__":
-    path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
-#    path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
-    infile = 'Subset_Lex.fastq'
-    #infile = 'Determ.Underterm.collapsed.fastq'
-    #infile = 'All_trimmed_forward.fastq'
-    infile = 'temp.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
-
-    [out_fname, out_pname, out_lname] = get_outfnames(path + infile)
-    
-    palindromes = {}
-    lengths = {}
-    total_trimmed = 0
-
-    max_rec_to_process = 10000
-
-    out_fh = open(path + out_fname, "w")
-    count = SeqIO.write(process(path + infile), out_fh, "fastq")
-    out_fh.close()
-    with open(path + out_pname, "w") as p_out_fh:
-        p_out_fh.write("palindrome\tcount\n")
-        for p in palindromes.keys():
-            p_out_fh.write("%s\t%s\n" %(p, palindromes[p]))
-
-    with open(path + out_lname, "w") as l_out_fh:
-        l_out_fh.write("palindrome_length\tcount\n")
-        for l in sorted(lengths.iterkeys()):
-            l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
-            total_trimmed += lengths[l]
-    print "Converted %i sequences with %i inverted_repeats" % (count, total_trimmed)
+def process(rec):
+    if isSequence(rec):
+		new_rec, palindrome, length = check(rec)
+		# don't chenge when length of palindrom is below minimum
+		if length < shortest_length_to_check:
+			new_rec = rec
+		else:
+			# change record ID
+			new_rec.description = '_cleaned_off_' + palindrome
+			#print new_rec
+			# log palindrome data
+			palindromes[palindrome] = palindromes.get(palindrome, 0) +1
+		lengths[length] = lengths.get(length, 0) +1
+    return new_rec
 
 # <codecell>
 
@@ -162,7 +143,36 @@ plt.plot(ks, vs)
 
 # <codecell>
 
-path + out_fname
+if __name__ == "__main__":
+    path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
+#    path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    infile = 'Subset_Lex.fastq'
+    #infile = 'Determ.Underterm.collapsed.fastq'
+    #infile = 'All_trimmed_forward.fastq'
+    #infile = 'temp.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+
+    [out_fname, out_pname, out_lname] = get_outfnames(path + infile)
+    
+    palindromes = {}
+    lengths = {}
+    total_trimmed = 0
+    processed = 0
+
+    max_rec_to_process = 1000
+    with open(path + out_fname, 'w') as out_fh:
+        for rec in SeqIO.parse(path+infile, "fastq"):
+            processed += 1
+            new_rec = process(rec)
+            out_fh.write(new_rec.format("fastq"))
+            if processed == max_rec_to_process:
+                break
+    print "Processed %i records" % processed
+
+# <codecell>
+
+[out_fname, out_pname, out_lname]
 
 # <codecell>
 
