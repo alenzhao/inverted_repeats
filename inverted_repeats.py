@@ -84,11 +84,11 @@ def get_outfnames(infile):
 # <codecell>
 
 # first/last 10 RC of eachother
-print "test1"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
+#print "test1"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
 # one base
-print "test2"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
+#print "test2"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
-print "test3"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+#print "test3"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 #test('')
 
 # <codecell>
@@ -119,10 +119,11 @@ def process(rec):
 
 # <codecell>
 
-%%timeit -n 10
+#%%timeit -n 10
 if __name__ == "__main__":
     path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
     #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/test_Lex/'
     infile = 'Subset_Lex.fastq'
     #infile = 'Determ.Underterm.collapsed.fastq'
     #infile = 'All_trimmed_forward.fastq'
@@ -167,15 +168,11 @@ if __name__ == "__main__":
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
 
-# <codecell>
+# <markdowncell>
 
-# original 10 loops, best of 3: 2.15 s per loop
-# only once reverse_complement 10 loops, best of 3: 1.89 s per loop
-# only one time str() 10 loops, best of 3: 591 ms per loop
-
-# <codecell>
-
-test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') # ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
+# original: 10 loops, best of 3: 2.15 s per loop  
+# only once reverse_complement: 10 loops, best of 3: 1.89 s per loop  
+# only one time str(): 10 loops, best of 3: 591 ms per loop
 
 # <codecell>
 
