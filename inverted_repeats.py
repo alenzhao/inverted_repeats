@@ -31,13 +31,15 @@ def check(seq):
     assert type(seq) == SeqRecord, "Not a sequence record: " + str(seq)
     assert len(seq) > 0, "Sequence length is zero: " + str(seq)
     inv_rep_length = 0
+    rc_seq = seq.reverse_complement()
     # need to test whether seq is a reverse complement of itself
     pass
     # check if first x bases are a reverse complement of the last x bases
     for i in range(len(seq)):
         subseq = seq[0:i]
-        #print str(rec[-10:].reverse_complement().seq) == str(rec[0:10].seq)
-        if str(subseq.reverse_complement().seq) == str(seq[-i:].seq):
+
+        # slower: if str(subseq.reverse_complement().seq) == str(seq[-i:].seq):
+        if str(rc_seq[-i:].seq) == str(seq[-i:].seq):
             #print i, subseq.reverse_complement(), seq[-i:]
             inv_rep_length = len(subseq)
         # check when no longer adding bases to inv_rep
@@ -114,12 +116,13 @@ def process(rec):
 
 # <codecell>
 
+#%%timeit -n 10
 if __name__ == "__main__":
     path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
     #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
-    #infile = 'Subset_Lex.fastq'
+    infile = 'Subset_Lex.fastq'
     #infile = 'Determ.Underterm.collapsed.fastq'
-    infile = 'All_trimmed_forward.fastq'
+    #infile = 'All_trimmed_forward.fastq'
     #infile = 'temp.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
@@ -163,4 +166,7 @@ if __name__ == "__main__":
 
 # <codecell>
 
+# original 10 loops, best of 3: 2.15 s per loop
+# only once reverse_complement 10 loops, best of 3: 1.89 s per loop
+# only one time str()
 
