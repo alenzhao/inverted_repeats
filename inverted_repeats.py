@@ -32,16 +32,19 @@ def check(seq):
     assert len(seq) > 0, "Sequence length is zero: " + str(seq)
     inv_rep_length = 0
     rc_seq = seq.reverse_complement()
+    # convert to text format
+    seq_txt = str(seq.seq)
+    rc_seq_txt = str(rc_seq.seq)
+    
     # need to test whether seq is a reverse complement of itself
     pass
-    # check if first x bases are a reverse complement of the last x bases
-    for i in range(len(seq)):
-        subseq = seq[0:i]
 
-        # slower: if str(subseq.reverse_complement().seq) == str(seq[-i:].seq):
-        if str(rc_seq[-i:].seq) == str(seq[-i:].seq):
-            #print i, subseq.reverse_complement(), seq[-i:]
-            inv_rep_length = len(subseq)
+    # check if first x bases are a reverse complement of the last x bases
+    for i in range(len(seq_txt)):
+        # slower: if str(seq_txt[0:i].reverse_complement().seq) == str(seq[-i:].seq):
+        #if str(rc_seq[-i:].seq) == str(seq[-i:].seq):
+        if rc_seq_txt[-i:] == seq_txt[-i:]:
+            inv_rep_length = i
         # check when no longer adding bases to inv_rep
         if inv_rep_length > 0 and i > inv_rep_length:
             break
@@ -81,11 +84,11 @@ def get_outfnames(infile):
 # <codecell>
 
 # first/last 10 RC of eachother
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
+print "test1"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
 # one base
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
+print "test2"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+print "test3"; assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 #test('')
 
 # <codecell>
@@ -116,7 +119,7 @@ def process(rec):
 
 # <codecell>
 
-#%%timeit -n 10
+%%timeit -n 10
 if __name__ == "__main__":
     path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
     #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
@@ -168,5 +171,12 @@ if __name__ == "__main__":
 
 # original 10 loops, best of 3: 2.15 s per loop
 # only once reverse_complement 10 loops, best of 3: 1.89 s per loop
-# only one time str()
+# only one time str() 10 loops, best of 3: 591 ms per loop
+
+# <codecell>
+
+test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') # ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
+
+# <codecell>
+
 
