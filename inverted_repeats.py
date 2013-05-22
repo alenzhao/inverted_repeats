@@ -62,9 +62,7 @@ def check(seq):
 # <codecell>
 
 def test(seq):
-#    [new_seq, inv_rep, inv_rep_length] = check(SeqRecord(Seq(seq)))
-#    return [str(new_seq.seq), inv_rep, inv_rep_length]
-    print extract_inv_repeat(SeqRecord(Seq(seq)))
+    return extract_inv_repeat(SeqRecord(Seq(seq)))
 
 # <codecell>
 
@@ -85,7 +83,7 @@ def get_outfnames(infile):
 # <codecell>
 
 # first/last 10 RC of eachother
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA','AGCTACGACT', 10]
+assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
 # one base
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
@@ -219,15 +217,6 @@ def extract_inv_repeat(seq):
         inv_rep = ''
 
     return [str(new_seq.seq), inv_rep, inv_rep_length]
-
-# <codecell>
-
-# 10 bases
-test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT')# == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
-#one_base
-test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT')# == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
-# no inv_rep
-test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA')# == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 
 # <codecell>
 
