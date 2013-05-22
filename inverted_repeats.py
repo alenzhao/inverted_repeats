@@ -6,6 +6,7 @@
 from Bio import Seq, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
 import os
 
 # <codecell>
@@ -62,7 +63,7 @@ def check(seq):
 # <codecell>
 
 def test(seq):
-    return extract_inv_repeat(SeqRecord(Seq(seq)))
+    return extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)))
 
 # <codecell>
 
@@ -88,7 +89,6 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGAT
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
-#test('')
 
 # <codecell>
 
@@ -216,7 +216,7 @@ def extract_inv_repeat(seq):
         new_seq = seq
         inv_rep = ''
 
-    return [str(new_seq.seq), inv_rep, inv_rep_length]
+    return [new_seq.seq, inv_rep, inv_rep_length]
 
 # <codecell>
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     infile = 'Subset_Lex.fastq'
     #infile = 'Determ.Underterm.collapsed.fastq'
     #infile = 'All_trimmed_forward.fastq'
-    #infile = 'temp.fastq'
+    infile = 'temp.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
 
@@ -246,8 +246,8 @@ if __name__ == "__main__":
     with open(path + out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(path+infile, "fastq"):
             processed += 1
-            new_rec, inv_rep = extract_inv_repeat(rec)
-            inv_rep_length = len(inv_rep)
+            new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec)
+            print type(new_rec)
             out_fh.write(new_rec.format("fastq"))
             if inv_rep_length > shortest_length_to_check:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
