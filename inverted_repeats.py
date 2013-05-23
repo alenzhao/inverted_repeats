@@ -25,6 +25,7 @@ def isSequence(seq):
 
 # <codecell>
 
+#OLD
 def check(seq):
     """Check whether first x bases are the reverse complement of the last x bases
        Returns sequence with the palindromic part removed, and the palindromic part"""
@@ -92,6 +93,7 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGAT
 
 # <codecell>
 
+#OLD
 def process(rec):
     if isSequence(rec):
 		new_rec, inv_rep, length = check(rec)
@@ -209,14 +211,15 @@ def extract_inv_repeat(seq):
     rc_seq_txt = str(seq.reverse_complement().seq)
     
     inv_rep_length = find_inv_repeat(seq_txt, rc_seq_txt)
-    if inv_rep_length > 0:
+    if inv_rep_length > shortest_length_to_check:
         new_seq = seq[:-inv_rep_length]
         inv_rep = str(seq[-inv_rep_length:].seq)
+        new_seq.description += ' cleaned_off_' + inv_rep
     else:
         new_seq = seq
         inv_rep = ''
 
-    return [new_seq.seq, inv_rep, inv_rep_length]
+    return [new_seq, inv_rep, inv_rep_length]
 
 # <codecell>
 
@@ -229,7 +232,7 @@ if __name__ == "__main__":
     infile = 'Subset_Lex.fastq'
     #infile = 'Determ.Underterm.collapsed.fastq'
     #infile = 'All_trimmed_forward.fastq'
-    infile = 'temp.fastq'
+    #infile = 'temp.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
     #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
 
@@ -247,7 +250,6 @@ if __name__ == "__main__":
         for rec in SeqIO.parse(path+infile, "fastq"):
             processed += 1
             new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec)
-            print type(new_rec)
             out_fh.write(new_rec.format("fastq"))
             if inv_rep_length > shortest_length_to_check:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
@@ -269,6 +271,11 @@ if __name__ == "__main__":
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
+
+# <codecell>
+
+new_rec.description = "#"
+print new_rec.format('fastq')
 
 # <codecell>
 
