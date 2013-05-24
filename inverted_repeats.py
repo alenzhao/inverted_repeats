@@ -12,7 +12,7 @@ import os
 # <codecell>
 
 # global parameters
-shortest_length_to_check = 3
+shortest_length_to_check = 4
 longest_length_to_check = 200
 
 # <codecell>
@@ -64,7 +64,12 @@ def check(seq):
 # <codecell>
 
 def test(seq):
-    return extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)))
+    result = extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)))
+    return [str(result[0].seq), result[1], result[2]]
+
+# <codecell>
+
+test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT')
 
 # <codecell>
 
@@ -84,12 +89,15 @@ def get_outfnames(infile):
 
 # <codecell>
 
+temp_test = shortest_length_to_check
+shortest_length_to_check = 0
 # first/last 10 RC of eachother
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
 # one base
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+shortest_length_to_check = temp_test
 
 # <codecell>
 
@@ -149,10 +157,10 @@ if __name__ == "__main__":
             new_rec, inv_rep, inv_rep_length = process(rec)
             out_fh.write(new_rec.format("fastq"))
             out_fh.flush()
-            if inv_rep_length > shortest_length_to_check:
+            if inv_rep_length >= shortest_length_to_check:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
             lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
-            if inv_rep_length > shortest_length_to_check:
+            if inv_rep_length >= shortest_length_to_check:
                 total_trimmed += 1
             if processed == max_rec_to_process:
                 break
