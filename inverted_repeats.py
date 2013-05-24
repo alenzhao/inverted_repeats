@@ -241,8 +241,7 @@ if __name__ == "__main__":
     #infile = 'Determ.Underterm.collapsed.fastq'
     #infile = 'All_trimmed_forward.fastq'
     #infile = 'temp.fastq'
-    #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
-    #infile = 'ancient_dna_terminal_inv_rep_test.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
 
     [out_fname, out_rname, out_lname] = get_outfnames(path + infile)
     
@@ -279,11 +278,6 @@ if __name__ == "__main__":
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
-
-# <codecell>
-
-new_rec.description = "#"
-print new_rec.format('fastq')
 
 # <codecell>
 
