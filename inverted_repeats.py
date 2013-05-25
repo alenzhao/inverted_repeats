@@ -9,11 +9,17 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import os
 
+# <markdowncell>
+
+# NOTES  
+# When sequence is its own reverse complement, do not clip it but mention it in the new sequence identifies, also report the sequence as inverted repeat (sequence and length)
+
 # <codecell>
 
 # global parameters
 shortest_length_to_check = 4
-longest_length_to_check = 200
+# Not omplemented:
+# longest_length_to_check = 200
 
 # <codecell>
 
@@ -106,7 +112,7 @@ def extract_inv_repeat(seq):
     if inv_rep_length == len(seq_txt):
         # sequence is its own reverse complement
         new_seq = seq
-        inv_rep = str(seq[-inv_rep_length:].seq)
+        inv_rep = seq_txt
         new_seq.description += ' self_reverse_complement'
     elif inv_rep_length >= shortest_length_to_check:
         new_seq = seq[:-inv_rep_length]
@@ -160,11 +166,10 @@ if __name__ == "__main__":
             processed += 1
             new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec)
             out_fh.write(new_rec.format("fastq"))
-            if inv_rep_length > shortest_length_to_check:
+            if inv_rep_length >= shortest_length_to_check:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
-            lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
-            if inv_rep_length > shortest_length_to_check:
                 total_trimmed += 1
+            lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
             if processed == max_rec_to_process:
                 break
         print "Writing summary files..."
@@ -180,18 +185,6 @@ if __name__ == "__main__":
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
-
-# <codecell>
-
-test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') # == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
-
-# <codecell>
-
-test('A')
-
-# <codecell>
-
-test('ACACAGGCCTGTGT')
 
 # <codecell>
 
