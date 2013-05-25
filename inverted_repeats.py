@@ -62,7 +62,7 @@ def plot(lengths):
 
 # original: 10 loops, best of 3: 2.15 s per loop  
 # only once reverse_complement: 10 loops, best of 3: 1.89 s per loop  
-# only one time str(): 10 loops, best of 3: 591 ms per loop
+# only one time str(): 10 loops, best of 3: 591 ms per loop  
 # after refactoring: 10 loops, best of 3: 193 ms per loop
 
 # <codecell>
@@ -72,16 +72,18 @@ def find_inv_repeat(seq, seq_rc):
        whether first x bases are the reverse complement of the last x bases
        Returns starting position of the inverted repeat (or 0)"""
 
-    # need to test whether seq is a reverse complement of itself
-    pass
-
     inv_rep_length = 0
-    # check if first x bases are a reverse complement of the last x bases
-    for i in range(1, len(seq)):
-        if seq_rc[-i:] == seq[-i:]:
-            inv_rep_length = i
-        else:
-            break
+
+    # need to test whether seq is a reverse complement of itself
+    if seq == seq_rc:
+        inv_rep_length = len(seq)
+    else:
+        # check if first x bases are a reverse complement of the last x bases
+        for i in range(1, len(seq)):
+            if seq_rc[-i:] == seq[-i:]:
+                inv_rep_length = i
+            else:
+                break
     return inv_rep_length
 
 # <codecell>
@@ -91,6 +93,7 @@ def extract_inv_repeat(seq):
        returns Bio.SeqRecord with the palindromic part removed, 
        and the sequence of the palindromic part"""
 
+    assert shortest_length_to_check > 0, "Shortest length to remove needs to be larger than zero, not %s" % shortest_length_to_check
     # expects a Bio.SeqRecord.SeqRecord
     assert type(seq) == SeqRecord, "Not a sequence record: '%s'" % str(seq)
     assert len(seq) > 0, "Sequence length is zero:\n" + str(seq)
@@ -100,7 +103,7 @@ def extract_inv_repeat(seq):
     rc_seq_txt = str(seq.reverse_complement().seq)
     
     inv_rep_length = find_inv_repeat(seq_txt, rc_seq_txt)
-    if inv_rep_length > shortest_length_to_check:
+    if inv_rep_length >= shortest_length_to_check:
         new_seq = seq[:-inv_rep_length]
         inv_rep = str(seq[-inv_rep_length:].seq)
         new_seq.description += ' cleaned_off_' + inv_rep
@@ -113,13 +116,15 @@ def extract_inv_repeat(seq):
 # <codecell>
 
 temp_test = shortest_length_to_check
-shortest_length_to_check = 0
+shortest_length_to_check = 1
 # first/last 10 RC of eachother
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
 # one base
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+# entire sequence it's own reverse complement
+assert test('ACACAGGCCTGTGT') == ['', 'ACACAGGCCTGTGT', 14]
 shortest_length_to_check = temp_test
 
 # <codecell>
@@ -170,6 +175,14 @@ if __name__ == "__main__":
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
+
+# <codecell>
+
+test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') # == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+
+# <codecell>
+
+test('ACACAGGCCTGTGT')
 
 # <codecell>
 
