@@ -140,18 +140,9 @@ shortest_length_to_check = temp_test
 
 # <codecell>
 
-#%%timeit -n 10
-if __name__ == "__main__":
-    path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
-    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
-    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/test_Lex/'
-    infile = 'Subset_Lex.fastq'
-    #infile = 'Determ.Underterm.collapsed.fastq'
-    #infile = 'All_trimmed_forward.fastq'
-    #infile = 'temp.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
-
-    [out_fname, out_rname, out_lname] = get_outfnames(path + infile)
+def process(infile):
+    """Does the actual work"""
+    [out_fname, out_rname, out_lname] = get_outfnames(infile)
     
     inv_reps = {}
     lengths = {}
@@ -161,8 +152,8 @@ if __name__ == "__main__":
     max_rec_to_process = 1000
     print "Processing sequences..."
     
-    with open(path + out_fname, 'w') as out_fh:
-        for rec in SeqIO.parse(path+infile, "fastq"):
+    with open(out_fname, 'w') as out_fh:
+        for rec in SeqIO.parse(infile, "fastq"):
             processed += 1
             new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec)
             out_fh.write(new_rec.format("fastq"))
@@ -174,17 +165,30 @@ if __name__ == "__main__":
                 break
         print "Writing summary files..."
         
-	with open(path + out_rname, "w") as p_out_fh:
+	with open(out_rname, "w") as p_out_fh:
 		p_out_fh.write("inverted_repeat\tcount\n")
 		for p in inv_reps.keys():
 			p_out_fh.write("%s\t%s\n" %(p, inv_reps[p]))
                            
-	with open(path + out_lname, "w") as l_out_fh:
+	with open(out_lname, "w") as l_out_fh:
 		l_out_fh.write("repeat_length\tcount\n")
 		for l in sorted(lengths.iterkeys()):
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
     print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
+
+# <codecell>
+
+if __name__ == "__main__":
+    path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/test_Lex/'
+    infile = '/Users/alexajo/Dropbox/current/inverted_repeats/data/Subset_Lex.fastq'
+    #infile = 'Determ.Underterm.collapsed.fastq'
+    #infile = 'All_trimmed_forward.fastq'
+    #infile = 'temp.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+    process(infile)
 
 # <codecell>
 
