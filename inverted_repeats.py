@@ -8,6 +8,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import os
+import argparse
 
 # <markdowncell>
 
@@ -20,6 +21,19 @@ import os
 shortest_length_to_check = 4
 # Not omplemented:
 # longest_length_to_check = 200
+
+# <codecell>
+
+# help text and argument parser
+desc = '\n'.join(["Strips off the 3' copy of any inverted repeat.",
+                 "Input: one fastq file.",
+                 "Output:",
+                 "1) a new fastq file with cleaned sequences: 'infile.fastq' gives 'infile.clean.fastq'",
+                 "2) a file called 'infile.inv_reps.txt' with the stripped sequences and their counts",
+                 "3) a file called 'infile.inv_rep_lengths.txt' with the length distribution of the stripped sequences."
+                  ])
+parser = argparse.ArgumentParser(description=desc)
+parser.add_argument('-i','--input', help='Input file name',required=True)
 
 # <codecell>
 
@@ -183,16 +197,7 @@ def process(infile):
 # <codecell>
 
 if __name__ == "__main__":
-    #path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
-    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
-    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/test_Lex/'
-    #infile = '/Users/alexajo/Dropbox/current/inverted_repeats/data/Subset_Lex.fastq'
-    #infile = 'Determ.Underterm.collapsed.fastq'
-    #infile = 'All_trimmed_forward.fastq'
-    #infile = 'temp.fastq'
-    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
-    process(infile)
-
-# <codecell>
-
+    args = parser.parse_args()
+    print ("Input file: %s" % args.input )
+    process(args.input)
 

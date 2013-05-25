@@ -3,10 +3,6 @@
 
 # <codecell>
 
-import argparse
-
-# <codecell>
-
 try:
     reload(ir)
 except:
@@ -14,25 +10,16 @@ except:
 
 # <codecell>
 
-desc = ("""Strips off the 3' copy of any inverted repeat.\n
-Input: one fastq file\n
-Output:
-1) a new fastq file with cleaned sequences
-'infile.fastq' generates 'infile.clean.fastq'
-2) a file called infile.inv_reps.txt with the stripped sequences and their counts.
-3) a file called infile.inv_rep_lengths.txt with the length distribution of the stripped sequences.
-""")
-
-# <codecell>
-
-parser = argparse.ArgumentParser(description=desc)
-parser.add_argument('-i','--input', help='Input file name',required=True)
-
 if __name__ == "__main__":
-    args = parser.parse_args()
-    ## show values ##
-    print ("Input file: %s" % args.input )
-    ir.process(args.input)
+    #path = '/Users/alexajo/Dropbox/current/inverted_repeats/data/'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/'
+    #path = '/projects/454data/in_progress/bastiaan/GM_historic_DNA/Hiseq_pilot/data/test_Lex/'
+    infile = '/Users/alexajo/Dropbox/current/inverted_repeats/data/Subset_Lex.fastq'
+    #infile = 'Determ.Underterm.collapsed.fastq'
+    #infile = 'All_trimmed_forward.fastq'
+    #infile = 'temp.fastq'
+    #infile = 'ancient_dna_terminal_palindrome_test.fastq'
+    ir.process(infile)
 
 # <codecell>
 
