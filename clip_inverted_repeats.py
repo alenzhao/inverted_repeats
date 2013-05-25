@@ -18,7 +18,6 @@ import argparse
 # <codecell>
 
 # global parameters
-shortest_length_to_check = 4
 # Not omplemented:
 # longest_length_to_check = 200
 
@@ -30,10 +29,12 @@ desc = '\n'.join(["Strips off the 3' copy of any inverted repeat.",
                  "Output:",
                  "1) a new fastq file with cleaned sequences: 'infile.fastq' gives 'infile.clean.fastq'",
                  "2) a file called 'infile.inv_reps.txt' with the stripped sequences and their counts",
-                 "3) a file called 'infile.inv_rep_lengths.txt' with the length distribution of the stripped sequences."
+                 "3) a file called 'infile.inv_rep_lengths.txt' with the length distribution of the stripped sequences.",
+                 "An optional argument -s/--shortest_length can be used to set the minumum length of repeat to clip (default: 4 bp)"
                   ])
 parser = argparse.ArgumentParser(description=desc)
 parser.add_argument('-i','--input', help='Input file name',required=True)
+parser.add_argument('-s', '--shortest_length', help='Shortest repeat length to clip', type=int, default=4, required = False)
 
 # <codecell>
 
@@ -45,8 +46,8 @@ def isSequence(seq):
 
 # <codecell>
 
-def test(seq):
-    result = extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)))
+def test(seq, shortest_length_to_clip):
+    result = extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)), shortest_length_to_clip)
     return [str(result[0].seq), result[1], result[2]]
 
 # <codecell>
@@ -108,12 +109,12 @@ def find_inv_repeat(seq, seq_rc):
 
 # <codecell>
 
-def extract_inv_repeat(seq):
+def extract_inv_repeat(seq, shortest_length_to_clip):
     """After finding posisiton of inverted repeat - if any - 
        returns Bio.SeqRecord with the palindromic part removed, 
        and the sequence of the palindromic part"""
 
-    assert shortest_length_to_check > 0, "Shortest length to remove needs to be larger than zero, not %s" % shortest_length_to_check
+    assert shortest_length_to_clip > 0, "Shortest length to remove needs to be larger than zero, not %s" % shortest_length_to_clip
     # expects a Bio.SeqRecord.SeqRecord
     assert type(seq) == SeqRecord, "Not a sequence record: '%s'" % str(seq)
     assert len(seq) > 0, "Sequence length is zero:\n" + str(seq)
@@ -128,7 +129,7 @@ def extract_inv_repeat(seq):
         new_seq = seq
         inv_rep = seq_txt
         new_seq.description += ' self_reverse_complement'
-    elif inv_rep_length >= shortest_length_to_check:
+    elif inv_rep_length >= shortest_length_to_clip:
         new_seq = seq[:-inv_rep_length]
         inv_rep = str(seq[-inv_rep_length:].seq)
         new_seq.description += ' cleaned_off_' + inv_rep
@@ -140,21 +141,18 @@ def extract_inv_repeat(seq):
 
 # <codecell>
 
-temp_test = shortest_length_to_check
-shortest_length_to_check = 1
 # first/last 10 RC of eachother
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
+assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
 # one base
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
+assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
 # no inv_rep
-assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 # entire sequence it's own reverse complement
-assert test('ACACAGGCCTGTGT') == ['ACACAGGCCTGTGT', 'ACACAGGCCTGTGT', 14]
-shortest_length_to_check = temp_test
+assert test('ACACAGGCCTGTGT', 1) == ['ACACAGGCCTGTGT', 'ACACAGGCCTGTGT', 14]
 
 # <codecell>
 
-def process(infile):
+def process(infile, shortest_length_to_clip):
     """Does the actual work"""
     
     # test for existing inout file
@@ -172,9 +170,9 @@ def process(infile):
     with open(out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(infile, "fastq"):
             processed += 1
-            new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec)
+            new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec, shortest_length_to_clip)
             out_fh.write(new_rec.format("fastq"))
-            if inv_rep_length >= shortest_length_to_check:
+            if inv_rep_length >= shortest_length_to_clip:
                 inv_reps[inv_rep] = inv_reps.get(inv_rep, 0) +1
                 total_trimmed += 1
             lengths[inv_rep_length] = lengths.get(inv_rep_length, 0) +1
@@ -199,5 +197,6 @@ def process(infile):
 if __name__ == "__main__":
     args = parser.parse_args()
     print ("Input file: %s" % args.input )
-    process(args.input)
+    print ("Shortest length to clip: %s" % args.shortest_length)
+    process(args.input, args.shortest_length)
 
