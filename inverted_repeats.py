@@ -103,7 +103,12 @@ def extract_inv_repeat(seq):
     rc_seq_txt = str(seq.reverse_complement().seq)
     
     inv_rep_length = find_inv_repeat(seq_txt, rc_seq_txt)
-    if inv_rep_length >= shortest_length_to_check:
+    if inv_rep_length == len(seq_txt):
+        # sequence is its own reverse complement
+        new_seq = seq
+        inv_rep = str(seq[-inv_rep_length:].seq)
+        new_seq.description += ' self_reverse_complement'
+    elif inv_rep_length >= shortest_length_to_check:
         new_seq = seq[:-inv_rep_length]
         inv_rep = str(seq[-inv_rep_length:].seq)
         new_seq.description += ' cleaned_off_' + inv_rep
@@ -124,7 +129,7 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT') == ['AGTCGTAGCTGAT
 # no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 # entire sequence it's own reverse complement
-assert test('ACACAGGCCTGTGT') == ['', 'ACACAGGCCTGTGT', 14]
+assert test('ACACAGGCCTGTGT') == ['ACACAGGCCTGTGT', 'ACACAGGCCTGTGT', 14]
 shortest_length_to_check = temp_test
 
 # <codecell>
@@ -179,6 +184,10 @@ if __name__ == "__main__":
 # <codecell>
 
 test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA') # == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
+
+# <codecell>
+
+test('A')
 
 # <codecell>
 
