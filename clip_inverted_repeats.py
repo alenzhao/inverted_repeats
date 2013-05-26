@@ -15,6 +15,9 @@
 #
 # Written by Lex Nederbragt, with input from Bastiaan Star
 # Version 1.0 release candidate 1, May 2013
+#
+# on Abel, needs 'module load python2'
+# run as 'python script_name.py -h' for instructions
 
 # <codecell>
 
