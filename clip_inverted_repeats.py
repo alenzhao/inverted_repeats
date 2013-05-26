@@ -3,23 +3,33 @@
 
 # <codecell>
 
+# Some Illumina reads from ancient DNA samples were found to consist of an inverted repeat
+# with a different seqeunce inbetween
+# in other words, the first x bases of a read are the reverse complement of the last x bases
+# This script is meant to clip the 3' part of an inverted repeat when present
+# A new fastq file is generated mentioning in the sequences ID which sequence was clipped, if any
+# Two metrics files on the repeats found (and clipped) are proeduced as well
+# When a sequence is its own reverse complement, this does not get clipped
+# but a mention is made sequence identifier and
+# these are also reported in the metrics file
+#
+# Written by Lex Nederbragt, with input from Bastiaan Star
+# Version 1.0 release candidate 1, May 2013
+
+# <codecell>
+
+# Not implemented yet:
+# longest_length_to_check
+# maximum number of reads to process as command-line argument
+
+# <codecell>
+
 from Bio import Seq, SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC
 import os
 import argparse
-
-# <markdowncell>
-
-# NOTES  
-# When sequence is its own reverse complement, do not clip it but mention it in the new sequence identifies, also report the sequence as inverted repeat (sequence and length)
-
-# <codecell>
-
-# global parameters
-# Not omplemented:
-# longest_length_to_check = 200
 
 # <codecell>
 
@@ -38,20 +48,6 @@ parser.add_argument('-s', '--shortest_length', help='Shortest repeat length to c
 
 # <codecell>
 
-def isSequence(seq):
-    """Check input is a sequence"""
-    test = True if type(seq) is Seq else False
-    test = True if len(seq) > 0 else False
-    return test
-
-# <codecell>
-
-def test(seq, shortest_length_to_clip):
-    result = extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)), shortest_length_to_clip)
-    return [str(result[0].seq), result[1], result[2]]
-
-# <codecell>
-
 def get_outfnames(infile):
     """Adds '.clean' to input filename (before the extension).
     Example: 'infile.fastq' becomes 'infile.clean.fastq'"""
@@ -65,26 +61,6 @@ def get_outfnames(infile):
     # inv_rep lengths + counts
     out_fnames.append(in_fname + '.inv_rep_lengths.txt')
     return out_fnames
-
-# <codecell>
-
-def plot(lengths):
-    from matplotlib import pylab as plt
-    ks = []
-    vs = []
-    for k, v in lengths.iteritems():
-        if k >0:
-            ks.append(k)
-            vs.append(v)
-    plt.plot(ks, vs)
-    plt.xlim(1,max(lengths.keys()))
-
-# <markdowncell>
-
-# original: 10 loops, best of 3: 2.15 s per loop  
-# only once reverse_complement: 10 loops, best of 3: 1.89 s per loop  
-# only one time str(): 10 loops, best of 3: 591 ms per loop  
-# after refactoring: 10 loops, best of 3: 193 ms per loop
 
 # <codecell>
 
@@ -110,9 +86,9 @@ def find_inv_repeat(seq, seq_rc):
 # <codecell>
 
 def extract_inv_repeat(seq, shortest_length_to_clip):
-    """After finding posisiton of inverted repeat - if any - 
-       returns Bio.SeqRecord with the palindromic part removed, 
-       and the sequence of the palindromic part"""
+    """After finding position of inverted repeat - if any - 
+       returns Bio.SeqRecord with the inverted repeated part removed, 
+       and the sequence of the removed part"""
 
     assert shortest_length_to_clip > 0, "Shortest length to remove needs to be larger than zero, not %s" % shortest_length_to_clip
     # expects a Bio.SeqRecord.SeqRecord
@@ -123,17 +99,22 @@ def extract_inv_repeat(seq, shortest_length_to_clip):
     seq_txt = str(seq.seq)
     rc_seq_txt = str(seq.reverse_complement().seq)
     
+    # locate the inverted repeat - if any
     inv_rep_length = find_inv_repeat(seq_txt, rc_seq_txt)
+    
+    # process results
     if inv_rep_length == len(seq_txt):
         # sequence is its own reverse complement
         new_seq = seq
         inv_rep = seq_txt
         new_seq.description += ' self_reverse_complement'
     elif inv_rep_length >= shortest_length_to_clip:
+        # hit
         new_seq = seq[:-inv_rep_length]
         inv_rep = str(seq[-inv_rep_length:].seq)
         new_seq.description += ' cleaned_off_' + inv_rep
     else:
+        # either no hit, or hit shorter than minimum to report
         new_seq = seq
         inv_rep = ''
 
@@ -141,10 +122,19 @@ def extract_inv_repeat(seq, shortest_length_to_clip):
 
 # <codecell>
 
+def test(seq, shortest_length_to_clip):
+    """Performs the 'unit tests'"""
+    result = extract_inv_repeat(SeqRecord(Seq(seq, IUPAC.unambiguous_dna)), shortest_length_to_clip)
+    return [str(result[0].seq), result[1], result[2]]
+
+# <codecell>
+
+# set of 'unit tests'
 # first/last 10 RC of eachother
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGAAGCTACGACT', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGA', 'AGCTACGACT', 10]
 # one base
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTA', 'T', 1]
+assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT', 4) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT', '', 1]
 # no inv_rep
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 # entire sequence it's own reverse complement
@@ -153,9 +143,11 @@ assert test('ACACAGGCCTGTGT', 1) == ['ACACAGGCCTGTGT', 'ACACAGGCCTGTGT', 14]
 # <codecell>
 
 def process(infile, shortest_length_to_clip):
-    """Does the actual work"""
+    """ Does the actual work:
+        Goes through the input file and streams the content through the inverted_repeat locator
+        Collects the new sequences and repeats found and reports them """
     
-    # test for existing inout file
+    # test for existing inut file
     assert os.path.exists(infile), "Input file '%s' appears not to exist." %infile
     [out_fname, out_rname, out_lname] = get_outfnames(infile)
     
@@ -164,7 +156,7 @@ def process(infile, shortest_length_to_clip):
     total_trimmed = 0
     processed = 0
     
-    max_rec_to_process = 1000
+    max_rec_to_process = 1e30
     print "Processing sequences..."
     
     with open(out_fname, 'w') as out_fh:
