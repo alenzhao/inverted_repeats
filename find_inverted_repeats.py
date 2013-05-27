@@ -10,11 +10,17 @@ from Bio.SeqRecord import SeqRecord
 # <codecell>
 
 revcomp = {}
+seed = 3 # number of bp to start searching for inv_rep
 a = 'ACGT'
 for i in a:
     for j in a:
         for k in a:
             revcomp[i+j+k] = str(Seq(i+j+k).reverse_complement())
+
+# <codecell>
+
+#def reverse_complement(seq):
+#    return str(Seq(seq).reverse_complement())
 
 # <codecell>
 
@@ -24,52 +30,18 @@ len(seq)
 
 # <codecell>
 
-startpos = 54 # 89 # 54 0
-trimer = seq[startpos:startpos + 3]
-trimer
-
-# <codecell>
-
-hit = seq.rfind(revcomp[trimer]) + len(trimer)
-len(seq), hit
-
-# <codecell>
-
-subseq = seq[startpos:hit]
-test_for_inv_repeat(subseq)
-
-# <codecell>
-
 def test_for_inv_repeat(subseq):
     inv_rep_len = find_inv_repeat(subseq,str(Seq(subseq).reverse_complement()))
     if inv_rep_len > 0:
-        print subseq, inv_rep_len
-        print subseq[:inv_rep_len] + "-" + subseq[inv_rep_len:-inv_rep_len]  + "-" + subseq[-inv_rep_len:]
+        return str(inv_rep_len) + ": " + subseq[:inv_rep_len] + "-" + subseq[inv_rep_len:-inv_rep_len]  + "-" + subseq[-inv_rep_len:]
     else:
-        print "No hit"
+        return "No hit"
 
 # <codecell>
 
-def reverse_complement(seq):
-    return str(Seq(seq).reverse_complement())
-
-# <codecell>
-
-seq[0:4], seq[0:48][-4:]
-
-# <codecell>
-
-seq2 = 'TGTGTGTGTGTATCGTGTGGGGTTGTGTTTGGCTGCGGTCGGTCCACACACACA'
-inv_rep_len = find_inv_repeat(seq2, reverse_complement(seq2))
-print seq2[-inv_rep_len:]
-
-# <codecell>
-
-
-# <codecell>
-
-revcomp
-
-# <codecell>
-
+for pos in range(len(seq) - seed + 1):
+    mer = seq[pos:pos + seed]
+    hit = seq.rfind(revcomp[mer]) + len(mer)
+    subseq = seq[pos:hit]
+    print str(pos) + '--> ' + test_for_inv_repeat(subseq)
 
