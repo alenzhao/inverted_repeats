@@ -96,7 +96,6 @@ def extract_inv_repeat(seq, shortest_length_to_clip):
     assert shortest_length_to_clip > 0, "Shortest length to remove needs to be larger than zero, not %s" % shortest_length_to_clip
     # expects a Bio.SeqRecord.SeqRecord
     assert type(seq) == SeqRecord, "Not a sequence record: '%s'" % str(seq)
-    assert len(seq) > 0, "Sequence length is zero:\n" + str(seq)
 
     # get sequence and reverse complement as text format
     seq_txt = str(seq.seq)
@@ -142,6 +141,8 @@ assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAT', 4) == ['AGTCGTAGCT
 assert test('AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', 1) == ['AGTCGTAGCTGATGCTTAGGGGCTTACTAGGCTTGATGAGGATTAA', '', 0]
 # entire sequence it's own reverse complement
 assert test('ACACAGGCCTGTGT', 1) == ['ACACAGGCCTGTGT', 'ACACAGGCCTGTGT', 14]
+# empty sequence
+assert test('', 4) == ['', '', 0]
 
 # <codecell>
 
@@ -157,6 +158,7 @@ def process(infile, shortest_length_to_clip):
     inv_reps = {}
     lengths = {}
     total_trimmed = 0
+    total_skipped = 0
     processed = 0
     
     max_rec_to_process = 1e30
@@ -165,6 +167,10 @@ def process(infile, shortest_length_to_clip):
     with open(out_fname, 'w') as out_fh:
         for rec in SeqIO.parse(infile, "fastq"):
             processed += 1
+            if len(rec) < 1:
+                # skip zero-length sequences
+                total_skipped += 1
+                continue
             new_rec, inv_rep, inv_rep_length = extract_inv_repeat(rec, shortest_length_to_clip)
             out_fh.write(new_rec.format("fastq"))
             if inv_rep_length >= shortest_length_to_clip:
@@ -185,7 +191,7 @@ def process(infile, shortest_length_to_clip):
 		for l in sorted(lengths.iterkeys()):
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
-    print "Processed %i records, found %i inverted repeats" % (processed, total_trimmed)
+    print "\nProcessed %i records:\n- skipped %i (zero-length)\n- found %i inverted repeat(s)\n" % (processed, total_skipped, total_trimmed)
 
 # <codecell>
 
