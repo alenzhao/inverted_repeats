@@ -45,3 +45,51 @@ for pos in range(len(seq) - seed + 1):
     subseq = seq[pos:hit]
     print str(pos) + '--> ' + test_for_inv_repeat(subseq)
 
+# <codecell>
+
+def add_character(current, max):
+    text = current + 'a'
+    if len(text) >= max:
+        return text
+    else:
+        return add_character(text, max)
+res = add_character('', 4)
+print res
+
+# <codecell>
+
+def mers(mer,nested, max):
+    for base in bases:
+        mer = mer + base
+        nested += 1
+        print '-'.join([str(nested), mer])
+    if nested >= max:
+        return mer
+    else:
+        return mers(mer, nested, max)
+
+bases = 'ACGT'
+nested = 0
+res = mers('',0, 3)
+print res
+
+# <codecell>
+
+def nested(text, level):
+    level += 1
+    for i in 'ACGT':
+        text += i
+        print level, i, text
+        if level < 3:
+            nested(i, level)
+        else:
+            pass
+            print "####"
+    
+
+nested('', -1)
+    
+
+# <codecell>
+
+
