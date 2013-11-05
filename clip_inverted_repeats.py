@@ -4,11 +4,11 @@
 # <codecell>
 
 # Some Illumina reads from ancient DNA samples were found to consist of an inverted repeat
-# with a different seqeunce inbetween
+# with a different sequence inbetween
 # in other words, the first x bases of a read are the reverse complement of the last x bases
 # This script is meant to clip the 3' part of an inverted repeat when present
 # A new fastq file is generated mentioning in the sequences ID which sequence was clipped, if any
-# Two metrics files on the repeats found (and clipped) are proeduced as well
+# Two metrics files on the repeats found (and clipped) are produced as well
 # When a sequence is its own reverse complement, this does not get clipped
 # but a mention is made sequence identifier and
 # these are also reported in the metrics file
@@ -16,14 +16,10 @@
 # Written by Lex Nederbragt, with input from Bastiaan Star
 # Version 1.0 release candidate 1, May 2013
 #
-# on Abel, needs 'module load python2'
+# requires biopython, os and argparse modules
+# on the UiO supercomputer "Abel", needs 'module load python2'
+#
 # run as 'python script_name.py -h' for instructions
-
-# <codecell>
-
-# Not implemented yet:
-# longest_length_to_check
-# maximum number of reads to process as command-line argument
 
 # <codecell>
 
@@ -37,7 +33,7 @@ import argparse
 # <codecell>
 
 # help text and argument parser
-desc = '\n'.join(["Strips off the 3' copy of any inverted repeat.",
+desc = '\n'.join(["Strips off the 3' copy of an terminal inverted repeat, when present.",
                  "Input: one fastq file.",
                  "Output:",
                  "1) a new fastq file with cleaned sequences: 'infile.fastq' gives 'infile.clean.fastq'",
@@ -191,7 +187,7 @@ def process(infile, shortest_length_to_clip):
 		for l in sorted(lengths.iterkeys()):
 			l_out_fh.write("%s\t%s\n" %(l, lengths[l]))
             
-    print "\nProcessed %i records:\n- skipped %i (zero-length)\n- found %i inverted repeat(s)\n" % (processed, total_skipped, total_trimmed)
+    print "\nProcessed %i records:\n- skipped %i (because of zero-length)\n- found %i inverted repeat(s)\n" % (processed, total_skipped, total_trimmed)
 
 # <codecell>
 
