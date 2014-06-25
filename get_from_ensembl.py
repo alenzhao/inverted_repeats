@@ -9,6 +9,6 @@ fullfn = sys.argv[1]
 
 ftp_path = 'ftp://ftp.ensembl.org/pub/release-%s/fasta/%s/dna/%s' % (release, species.lower(), fullfn)
 
-cmd = "curl -s -O %s" % ftp_path
+cmd = "curl --retry 3 -s -O %s" % ftp_path
 print cmd
 os.system(cmd)
