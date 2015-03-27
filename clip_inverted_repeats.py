@@ -3,13 +3,13 @@
 
 # <codecell>
 
-# Some Illumina reads from ancient DNA samples were found to consist of an inverted repeat
+# Some Illumina reads from ancient DNA samples were found to contain an inverted repeat
 # with a different sequence inbetween
 # in other words, the first x bases of a read are the reverse complement of the last x bases
 # This script is meant to clip the 3' part of an inverted repeat when present
 # A new fastq file is generated mentioning in the sequences ID which sequence was clipped, if any
 # Two metrics files on the repeats found (and clipped) are produced as well
-# When a sequence is its own reverse complement, this does not get clipped
+# When an entire sequence is its own reverse complement, this does not get clipped
 # but a mention is made sequence identifier and
 # these are also reported in the metrics file
 #
